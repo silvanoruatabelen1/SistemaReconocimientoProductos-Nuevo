@@ -1,21 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SCANIX - Sistema de Reconocimiento de Productos</title>
-    <meta name="description" content="Sistema profesional de reconocimiento de productos por fotografía para vendedores y operadores de depósito" />
-    <meta name="author" content="SCANIX" />
-
-    <meta property="og:title" content="SCANIX - Sistema de Reconocimiento de Productos" />
-    <meta property="og:description" content="Sistema profesional de reconocimiento de productos por fotografía para vendedores y operadores de depósito" />
-    <meta property="og:type" content="website" />
-
-    <meta property="og:image" content="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.pngegg.com%2Fes%2Fsearch%3Fq%3Dmanzana&psig=AOvVaw0rmIT1clJVlp3IwU8756u4&ust=1757612998664000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCMDg5ubgzo8DFQAAAAAdAAAAABAE" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SCANIX - Inventario (HTML/CSS/JS)</title>
+    <meta name="description" content="Inventario con HTML/CSS/JS puro" />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
-
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <header class="container header">
+      <div>
+        <h1>Control de Inventario</h1>
+        <p class="muted">Monitorea los niveles de stock por depósito</p>
+      </div>
+      <div>
+        <button id="btnExport" class="btn outline">Exportar</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="grid4" id="summary">
+        <div class="card">
+          <div class="card-content">
+            <div class="row">
+              <div class="icon primary">📦</div>
+              <div>
+                <p class="stat" id="statProducts">0</p>
+                <p class="muted small">Productos Total</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-content">
+            <div class="row">
+              <div class="icon danger">⚠️</div>
+              <div>
+                <p class="stat" id="statLow">0</p>
+                <p class="muted small">Stock Bajo</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-content">
+            <div class="row">
+              <div class="icon">🏭</div>
+              <div>
+                <p class="stat">3</p>
+                <p class="muted small">Depósitos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-content">
+            <div class="row">
+              <div class="icon success">📈</div>
+              <div>
+                <p class="stat" id="statValue">$0.00</p>
+                <p class="muted small">Valor Total</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-content">
+          <div class="filters">
+            <div class="grow">
+              <input id="txtSearch" class="input" placeholder="Buscar por nombre o SKU..." />
+            </div>
+            <select id="selWarehouse" class="select"></select>
+            <select id="selStock" class="select">
+              <option value="all">Todos los niveles</option>
+              <option value="low">Stock bajo</option>
+              <option value="normal">Stock normal</option>
+              <option value="high">Stock alto</option>
+            </select>
+            <button id="btnFilters" class="btn outline">Filtros</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="list" class="vstack gap"></section>
+
+      <section id="empty" class="card hidden">
+        <div class="card-content center">
+          <div class="icon">📦</div>
+          <h3>No se encontraron productos</h3>
+          <p class="muted">Intenta ajustar los criterios de búsqueda</p>
+          <button id="btnClear" class="btn outline">Limpiar filtros</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
   </body>
-</html>
+  </html>
+

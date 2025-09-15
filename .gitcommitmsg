@@ -1,1 +1,1 @@
-chore: init repo with simple Node backend and gitignore
+feat(frontend): unify to pure HTML/CSS/JS at root with mock fallback; remove vanilla folder

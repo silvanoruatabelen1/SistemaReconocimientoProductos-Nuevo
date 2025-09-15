@@ -1,11 +1,14 @@
-const API = location.origin.replace(/\/$/, "") + "/api";
+const API = (location.protocol.startsWith('http') ? (location.origin.replace(/\/$/, "") + "/api") : null);
+let USE_MOCK = false;
 
-let state = {
-  items: [],
-  search: "",
-  warehouse: "all",
-  stock: "all",
-};
+const SEED = [
+  { id:'1', name:'Aceite de Oliva Extra Virgen 500ml', sku:'AOL-500', category:'Aceites', currentStock:45, minStock:20, maxStock:100, price:8.5, lastMovement:'2024-01-15', movementType:'salida', warehouse:'Depósito Central' },
+  { id:'2', name:'Arroz Integral 1kg', sku:'ARR-1000', category:'Granos', currentStock:8, minStock:15, maxStock:80, price:3.2, lastMovement:'2024-01-14', movementType:'salida', warehouse:'Depósito Central' },
+  { id:'3', name:'Pasta Italiana 500g', sku:'PAS-500', category:'Pastas', currentStock:67, minStock:25, maxStock:120, price:2.9, lastMovement:'2024-01-13', movementType:'entrada', warehouse:'Depósito Norte' },
+  { id:'4', name:'Conserva de Tomate 400g', sku:'CON-400', category:'Conservas', currentStock:2, minStock:10, maxStock:60, price:1.8, lastMovement:'2024-01-12', movementType:'salida', warehouse:'Depósito Central' },
+];
+
+let state = { items: [], search:'', warehouse:'all', stock:'all' };
 
 function fmtCurrency(n){
   return new Intl.NumberFormat('es-AR',{style:'currency',currency:'USD'}).format(n);
@@ -19,9 +22,21 @@ function stockInfo(current, min, max){
 }
 
 async function loadInventory(){
-  const res = await fetch(`${API}/inventory`);
-  const data = await res.json();
-  state.items = data;
+  if (!API) {
+    USE_MOCK = true;
+    state.items = SEED.map(x=>({ ...x }));
+    return render();
+  }
+  try {
+    const res = await fetch(`${API}/inventory`, { cache:'no-store' });
+    if (!res.ok) throw new Error('no ok');
+    const data = await res.json();
+    state.items = Array.isArray(data) ? data : [];
+    USE_MOCK = false;
+  } catch {
+    state.items = SEED.map(x=>({ ...x }));
+    USE_MOCK = true;
+  }
   render();
 }
 
@@ -111,11 +126,24 @@ function card(item){
       if (val==null) return;
       const delta = Number(val);
       if (Number.isNaN(delta)) return alert('Valor inválido');
-      try{
-        await fetch(`${API}/inventory/adjust`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, delta})});
-        await loadInventory();
-        alert('Stock actualizado');
-      }catch(e){ alert('Error al ajustar stock'); }
+      if (USE_MOCK || !API){
+        const idx = state.items.findIndex(x=>String(x.id)===String(id));
+        if (idx>-1){
+          const it = {...state.items[idx]};
+          it.currentStock = Math.max(0, (it.currentStock||0)+delta);
+          it.lastMovement = new Date().toISOString().slice(0,10);
+          it.movementType = delta>=0 ? 'entrada':'salida';
+          state.items[idx]=it;
+          render();
+          alert('Stock actualizado (modo sin backend)');
+        }
+      } else {
+        try{
+          await fetch(`${API}/inventory/adjust`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, delta})});
+          await loadInventory();
+          alert('Stock actualizado');
+        }catch(e){ alert('Error al ajustar stock'); }
+      }
     }
     if (act === 'history'){
       alert('Historial en desarrollo');

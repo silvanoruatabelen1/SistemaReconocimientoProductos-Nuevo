@@ -33,7 +33,7 @@ const router = new Router({
     '#/login': () => import('./pages/login.js').then(m => m.default),
     '#/scan': () => import('./pages/scan.js').then(m => m.default),
     '#/order-edit': () => import('./pages/orderEdit.js').then(m => m.default),
-    '#/ticket': () => import('./pages/ticket.js').then(m => m.default),
+    '#/ticket/:id': () => import('./pages/ticket.js').then(m => m.default),
     '#/catalog': () => import('./pages/catalog.js').then(m => m.default),
     '#/orders': () => import('./pages/orders.js').then(m => m.default),
     '#/transfers': () => import('./pages/transfers.js').then(m => m.default),
@@ -58,4 +58,3 @@ if (!getCurrentUser()) {
 } else {
   router.handleHashChange();
 }
-

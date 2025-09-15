@@ -1,0 +1,59 @@
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+  /* Colors */
+  --bg: #0b0c10;
+  --surface: #111318;
+  --surface-2: #171a21;
+  --text: #e7e9ee;
+  --text-muted: #a4abba;
+  --primary: #6ea8fe;
+  --primary-600: #5696fb;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --border: #232632;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 18px;
+  --transition-fast: .15s ease;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f2f3f7;
+  --text: #0f1117;
+  --text-muted: #4b5565;
+  --primary: #2563eb;
+  --primary-600: #1e54c5;
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --border: #e3e6ef;
+  --shadow: 0 10px 30px rgba(15,17,23,.08);
+}
+
+/* Utilities (Tailwind‑lite) */
+.container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.vstack { display:flex; flex-direction:column; gap:12px; }
+.hstack { display:flex; flex-direction:row; gap:12px; align-items:center; }
+.space-between { justify-content:space-between; align-items:center; }
+.muted { color: var(--text-muted); }
+.small { font-size: 12px; }
+.shadow-md { box-shadow: var(--shadow); }
+.rounded-xl { border-radius: var(--radius); }
+.rounded-2xl { border-radius: var(--radius-lg); }
+.bordered { border: 1px solid var(--border); }
+.btn { transition: all var(--transition-fast); }
+
+/* Base */
+html, body { height:100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+

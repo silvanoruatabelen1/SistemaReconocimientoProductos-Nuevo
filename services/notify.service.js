@@ -1,8 +1,8 @@
 import { toast } from '../components/Toast.js';
 export const notify = {
-  info: (m)=>toast(m,'info'),
-  success: (m)=>toast(m,'success'),
-  warn: (m)=>toast(m,'warning'),
-  error: (m)=>toast(m,'error'),
+  success: (msg) => toast(msg, 'success'),
+  info: (msg) => toast(msg, 'primary'),
+  warn: (msg) => toast(msg, 'warning'),
+  error: (msg) => toast(msg, 'danger')
 };
 

@@ -1,161 +1,44 @@
-# Welcome to your Lovable project
+# SCANIX – Sistema de Reconocimiento de Productos
 
-## Project info
+Aplicación web que permite reconocer productos a partir de una foto y generar pedidos con precios escalados, tickets y control de stock por depósito.
 
-**URL**: https://lovable.dev/projects/237da71c-7115-4340-aaac-610b85b35107
+## Funcionalidades (HUs nuevas implementadas)
+- HU01: Catálogo de productos con SKU, imagen, tags, priceRules, soft-delete y versionado mínimo.
+- HU02: Escaneo simulado de productos por foto.
+- HU03: Edición del pedido (ajustar cantidades, agregar/quitar productos con autocomplete).
+- HU04: Motor de precios por cantidad y cálculo de totales.
+- HU05: Confirmación de venta y generación de ticket (vista imprimible + PDF).
+- HU06: Descuento de stock por depósito (atómico).
+- HU07: Transferencias entre depósitos con remito (vista imprimible + PDF).
+- HU08: Historial de ventas y reimpresión de tickets.
+- Campo **Operador (opcional)** en ventas y transferencias para trazabilidad mínima.
 
-## How can I edit this code?
+## Tecnologías
+- HTML + CSS + JavaScript (ES Modules)
+- Bootstrap 5 + Bootstrap Icons
+- dayjs, jsPDF, Chart.js (CDN)
+- Almacenamiento en localStorage (mock)
 
-There are several ways of editing your application.
+## Cómo usar
+1. Clonar este repositorio.
+2. Abrir `index.html` con doble click (funciona en modo `file://`).
+3. Probar el flujo: **Scan → Pedido → Confirmar → Ticket**.
+## Impresión
 
-**Use Lovable**
+- Solo se imprime el contenido de Ticket y Remito (contenedores con clase `print-area`). El resto de la interfaz se oculta durante la impresión.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/237da71c-7115-4340-aaac-610b85b35107) and start prompting.
+## Autocomplete
 
-Changes made via Lovable will be committed automatically to this repo.
+- Los dropdowns de sugerencias se muestran por encima de la UI (z-index alto) y dentro de un contenedor posicionado para evitar mezclas visuales en Pedido y Transferencias.
 
-**Use your preferred IDE**
+## Catálogo – botón “+ Nuevo”
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Funcional: limpia y resetea el formulario a “Nuevo producto”.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Transferencias – selector de Depósitos
 
-Follow these steps:
+- El combo de Destino filtra el depósito seleccionado en Origen. Si al cambiar Origen quedan iguales, se limpia Destino automáticamente.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Reportes – filtro por Depósito
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/237da71c-7115-4340-aaac-610b85b35107) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-
-## SCANIX (HTML + CSS + JS ESM) - Frontend sin build
-
-- Abrir con doble click `index.html` (modo mock, sin requests reales).
-- Estilo premium: Bootstrap 5 + Icons (CDN), Inter (Google Fonts) + tokens en `design/tokens.css` y overrides en `styles.css`.
-- Dark/Light: atributo `data-theme` persistido en `localStorage` con toggle en navbar.
-- SPA hash router: `#/login`, `#/scan`, `#/order-edit`, `#/ticket/:id`, `#/catalog`, `#/orders`, `#/transfers`, `#/reports`, `#/admin/users`, `#/dataset`.
-- Estado en localStorage con `mocks/seed.js` (inicializa si está vacío) y servicios en `services/*`.
-
-### Estructura
-
-- `public/assets/` (logo, placeholders)
-- `design/tokens.css` (paleta, radios, sombras, utilidades)
-- `styles.css` (overrides Bootstrap + componentes)
-- `index.html` (CDNs + SPA)
-- `app.js` (init, router, tema, seed)
-- `router.js` (hash router)
-- `auth.js` (estado auth local)
-- `components/` (Navbar, Toast)
-- `pages/` (login, scan, orderEdit, ticket, catalog, orders, transfers, reports, users, dataset)
-- `services/` (api, auth.service, products.service, pricing.service, orders.service, notify.service)
-- `mocks/` (seed y vision.mock)
-
-### API (alineado a DRF)
-
-En `services/api.js`:
-
-```
-export const BASE_URL = "http://localhost:8000"; // ajustar
-let AUTH_TOKEN = localStorage.getItem("AUTH_TOKEN") || null;
-export function setAuthToken(t) { ... }
-const headers = () => AUTH_TOKEN ? { Authorization: `Token ${AUTH_TOKEN}` } : {};
-export async function apiPost(path, body) { ... }
-export async function apiGet(path)  { ... }
-export async function apiPut(path, body) { ... }
-export async function apiDel(path)  { ... }
-```
-
-Contratos previstos:
-- Auth: `POST /login/` → `{ token }`
-- Productos: CRUD `/api/producto/`, `GET /api/producto/?search=`
-- Ventas: `POST /api/venta/`, `GET /api/venta/?from=&to=&depot=`, `GET /api/venta/:id`
-- Reconocimiento: `POST /api/reconocimiento/` (imagen) → detecciones
-- Stock/Transferencias: bajo `/api/`
-
-Modo mock evita requests reales (luego para conectar API, pon `localStorage.SCANIX_USE_MOCK = 'false'`).
-
-### Resetear datos
-
-Borrar `localStorage.SCANIX_DB` y recargar.
-
-### Pasar a API real
-
-1. Ajustar `BASE_URL` en `services/api.js`.
-2. Cambiar `localStorage.SCANIX_USE_MOCK = 'false'`.
-3. Implementar endpoints en Django REST y respetar contratos.
-4. `auth.service.js` ya usa `POST /login/` y token en header `Authorization: Token <token>`.
-
-
-## Backend simple (sin dependencias)
-
-Se agregó un backend mínimo en `server/server.js` usando solo Node `http` y archivos JSON para persistencia.
-
-- Iniciar backend: `npm run start:server` (por defecto en `http://localhost:3001`)
-- Endpoints:
-  - `GET /api/inventory` → lista de productos
-  - `POST /api/inventory/adjust` → cuerpo `{ id, delta }` para ajustar stock
-  - `GET /health` → chequeo de salud
-
-La data se guarda en `data/inventory.json` y se genera automáticamente si no existe.
-
-## Plan de migración a HTML/CSS/JS
-
-1. Mantener la estética exportando estilos desde `src/index.css` a CSS plano.
-2. Crear páginas estáticas (HTML) para cada vista principal y usar `fetch` al backend.
-3. Reemplazar componentes claves (filtros, tablas, modales) por utilidades ligeras sin framework.
-4. Eliminar dependencias no esenciales y `vite` una vez completada la migración.
-
-## Git y despliegue
-
-Este repo ahora incluye `.gitignore`. Para publicar en GitHub:
-
-1. `git init`
-2. `git add . && git commit -m "chore: init with simple backend"`
-3. Crear repo en GitHub y ejecutar:
-   - `git branch -M main`
-   - `git remote add origin <url_del_repo>`
-   - `git push -u origin main`
+- El gráfico se filtra por depósito; si no hay datos se muestra “Sin ventas para este depósito/periodo”.

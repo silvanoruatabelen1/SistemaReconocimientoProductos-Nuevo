@@ -1,12 +1,12 @@
-// API base usando axios + Token (DRF estilo CarritoAI)
-// Contratos esperados:
-// Auth: POST /login/ -> { token }
-// Productos: GET/POST/PUT/DELETE /api/producto/, GET /api/producto/?search=...
-// Ventas: POST /api/venta/, GET /api/venta/?from=&to=&depot=, GET /api/venta/:id
-// Reconocimiento: POST /api/reconocimiento/ (imagen) -> detecciones
-// Stock/Transfer: rutas bajo /api/
+// API base usando axios + Token (stubs para conectar backend REST)
+// Endpoints esperados:
+// - Auth: POST /auth/login -> { token }
+// - Productos: GET /products, POST /products, PUT /products/:id, DELETE /products/:id, GET /products?search=
+// - Ventas: POST /orders, GET /orders, GET /orders/:id
+// - Stock: POST /stock/transfer, GET /stock?productId=&depot=
+// - Reconocimiento: POST /vision/detect (imagen) -> detecciones
 
-export const BASE_URL = "http://localhost:8000"; // ajustar al backend
+export const BASE_URL = "http://localhost:8000/api"; // ajustar al backend
 let AUTH_TOKEN = localStorage.getItem("AUTH_TOKEN") || null;
 
 export function setAuthToken(t) {
@@ -42,4 +42,3 @@ export async function apiDel(path)  {
   const { data } = await axios.delete(`${BASE_URL}${path}`, { headers: headers() });
   return data;
 }
-

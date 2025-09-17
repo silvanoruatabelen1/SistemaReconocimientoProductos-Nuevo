@@ -1,57 +1,107 @@
-import { priceForQty } from './pricing.service.js';
+import { getById as getProductById } from './products.service.js';
+import { computeLine } from './pricing.service.js';
+import { adjustStockAtomic } from './stock.service.js';
 
-const CART_KEY = 'SCANIX_CART';
+const SS_DRAFT = 'orderDraft';
+const LS_ORDERS = 'orders';
 
-export function getCart(){
-  try { return JSON.parse(localStorage.getItem(CART_KEY)) || { lines: [], depot: 'Depósito Central', seller:'Vendedor 1' }; } catch { return { lines: [] }; }
+function loadDraft() { return JSON.parse(sessionStorage.getItem(SS_DRAFT) || 'null'); }
+function saveDraft(d) { sessionStorage.setItem(SS_DRAFT, JSON.stringify(d)); }
+function clearDraft() { sessionStorage.removeItem(SS_DRAFT); }
+
+function loadOrders() { return JSON.parse(localStorage.getItem(LS_ORDERS) || '[]'); }
+function saveOrders(list) { localStorage.setItem(LS_ORDERS, JSON.stringify(list)); }
+
+export function startDraftFromDetections(grouped) {
+  const lines = grouped.map(g => ({ productId: g.productId, sku: g.sku, name: g.name, qty: g.qty }));
+  const draft = { id: 'DRAFT', createdAt: Date.now(), lines };
+  saveDraft(draft);
+  return draft;
 }
 
-export function saveCart(cart){ localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+export function getDraft() { return loadDraft(); }
+export function ensureDraft() { return loadDraft() || saveDraft({ id: 'DRAFT', createdAt: Date.now(), lines: [] }) || loadDraft(); }
 
-export function addLine(prod, qty=1){
-  const cart = getCart();
-  const idx = cart.lines.findIndex(l => l.sku === prod.sku);
-  if (idx>-1) cart.lines[idx].qty += qty;
-  else cart.lines.push({ sku: prod.sku, name: prod.name, qty, basePrice: prod.price, rules: prod.priceRules||[] });
-  saveCart(cart); return cart;
+export function setDepotToDraft(depotId) {
+  const d = ensureDraft();
+  d.depotId = depotId;
+  saveDraft(d);
+  return d;
 }
 
-export function updateQty(sku, qty){
-  const cart = getCart();
-  const line = cart.lines.find(l => l.sku===sku); if (!line) return cart;
-  line.qty = Math.max(0, qty);
-  if (line.qty===0) cart.lines = cart.lines.filter(l => l.sku!==sku);
-  saveCart(cart); return cart;
+export function setOperatorToDraft(operator) {
+  const d = ensureDraft();
+  d.operator = (operator || '').trim();
+  saveDraft(d);
+  return d;
 }
 
-export function totals(cart){
-  let subtotal = 0; const detailed = cart.lines.map(l => {
-    const { unit, rule } = priceForQty(l.basePrice, l.qty, l.rules);
-    const lineTotal = unit * l.qty; subtotal += lineTotal;
-    return { ...l, unit, rule, lineTotal };
+export function addLine(productId, qty=1) {
+  const d = ensureDraft();
+  const p = getProductById(productId);
+  if (!p || p.deleted) throw new Error('Producto inválido');
+  const i = d.lines.findIndex(l => l.productId === productId);
+  if (i === -1) d.lines.push({ productId, sku: p.sku, name: p.name, qty: Number(qty)||1 });
+  else d.lines[i].qty += Number(qty)||1;
+  saveDraft(d);
+  return d;
+}
+
+export function removeLine(productId) {
+  const d = ensureDraft();
+  d.lines = d.lines.filter(l => l.productId !== productId);
+  saveDraft(d);
+  return d;
+}
+
+export function setLineQty(productId, qty) {
+  const d = ensureDraft();
+  const i = d.lines.findIndex(l => l.productId === productId);
+  if (i !== -1) d.lines[i].qty = Math.max(0, Number(qty)||0);
+  saveDraft(d);
+  return d;
+}
+
+export function computeTotals(draft = ensureDraft()) {
+  let total = 0;
+  const lines = draft.lines.map(l => {
+    const p = getProductById(l.productId);
+    const { unitPrice, rule, subtotal } = computeLine(p, l.qty);
+    total += subtotal;
+    return { ...l, unitPrice, subtotal, rule, version: p?.version || 1 };
   });
-  return { lines: detailed, subtotal, total: subtotal };
+  return { lines, total };
 }
 
-export function confirmOrder(){
-  const cart = getCart();
-  const db = JSON.parse(localStorage.getItem('SCANIX_DB'));
-  // Descontar stock (válida disponibilidad simple)
-  for (const line of cart.lines){
-    const p = db.stock.find(s => s.sku===line.sku && s.depot===cart.depot);
-    if (!p || p.qty < line.qty) throw new Error(`Stock insuficiente para ${line.sku}`);
-  }
-  for (const line of cart.lines){
-    const p = db.stock.find(s => s.sku===line.sku && s.depot===cart.depot);
-    p.qty -= line.qty;
-  }
-  // Crear ticket
-  const ticketId = String(Date.now());
-  const sum = totals(cart);
-  const ticket = { id: ticketId, createdAt: new Date().toISOString(), depot: cart.depot, seller: cart.seller, lines: sum.lines, total: sum.total };
-  db.orders.push(ticket);
-  localStorage.setItem('SCANIX_DB', JSON.stringify(db));
-  localStorage.removeItem(CART_KEY);
-  return ticketId;
+export function confirmOrder(depotId) {
+  const draft = ensureDraft();
+  if (!depotId) throw new Error('Seleccione un depósito');
+  const { lines, total } = computeTotals(draft);
+  // validate lines qty > 0
+  const finalLines = lines.filter(l => l.qty > 0);
+  if (finalLines.length === 0) throw new Error('El pedido está vacío');
+  // stock atomic
+  const adj = adjustStockAtomic(finalLines, depotId);
+  if (!adj.ok) return { ok: false, error: adj.error };
+  // persist order
+  const order = {
+    id: 'V-' + Date.now(),
+    at: Date.now(),
+    depotId,
+    operator: (draft.operator || '').trim() || null,
+    lines: finalLines,
+    total
+  };
+  const all = loadOrders();
+  all.push(order);
+  saveOrders(all);
+  clearDraft();
+  return { ok: true, order };
 }
 
+export function getOrderById(id) { return loadOrders().find(o => o.id === id); }
+export function listOrders({ depotId = null } = {}) {
+  let arr = loadOrders();
+  if (depotId) arr = arr.filter(o => o.depotId === depotId);
+  return arr.sort((a,b) => b.at - a.at);
+}

@@ -1,25 +1,34 @@
-let toastId = 0;
-export function toast(message, variant='info'){
-  let container = document.getElementById('toast-container');
-  if (!container){
-    container = document.createElement('div');
-    container.id='toast-container';
-    container.style.position='fixed';
-    container.style.top='16px';
-    container.style.right='16px';
-    container.style.zIndex='2000';
-    document.body.appendChild(container);
+export function ensureToastContainer() {
+  let c = document.getElementById('toast-container');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'toast-container';
+    document.body.appendChild(c);
   }
-  const id = `t-${++toastId}`;
+}
+
+export function toast(message, variant = 'primary') {
+  ensureToastContainer();
+  const id = 't' + Date.now();
   const el = document.createElement('div');
-  el.id = id;
-  el.className = 'surface rounded-xl shadow-md p-3 mb-2 transition';
-  el.innerHTML = `<div><strong>${variant.toUpperCase()}</strong> - ${message}</div>`;
-  container.appendChild(el);
-  setTimeout(()=>{
-    el.style.opacity='0';
-    el.style.transform='translateX(10px)';
-    setTimeout(()=>el.remove(),200);
-  }, 2500);
+  el.className = 'toast align-items-center show border-0 shadow-soft';
+  el.role = 'alert';
+  el.ariaLive = 'assertive';
+  el.ariaAtomic = 'true';
+  el.dataset.bsAutohide = 'true';
+  el.innerHTML = `
+    <div class="d-flex">
+      <div class="toast-body text-bg-${variant}">${message}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>`;
+  document.getElementById('toast-container').appendChild(el);
+  try {
+    const t = bootstrap.Toast.getOrCreateInstance(el, { delay: 2500 });
+    t.show();
+    el.addEventListener('hidden.bs.toast', () => el.remove());
+  } catch (_) {
+    // fallback
+    setTimeout(() => el.remove(), 3000);
+  }
 }
 

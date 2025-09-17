@@ -1,15 +1,20 @@
-// Detección simulada (sku, name, qty, confidence)
-export function detectFromImage(file){
-  const delay = 500 + Math.random()*1000;
-  return new Promise(res=>setTimeout(()=>{
-    const samples = [
-      { sku:'AOL-500', name:'Aceite de Oliva 500ml', qty: 1, confidence: 0.78 },
-      { sku:'ARR-1000', name:'Arroz Integral 1kg', qty: 2, confidence: 0.66 },
-      { sku:'PAS-500', name:'Pasta Italiana 500g', qty: 1, confidence: 0.59 },
-    ];
-    // Aleatorio 1-3 detecciones
-    const count = Math.ceil(Math.random()*3);
-    res(samples.slice(0,count));
-  }, delay));
+// Simula detecciones desde una imagen: [{ sku, name, qty, confidence }]
+import { list as listProducts } from '../services/products.service.js';
+
+export async function detectFromImage(_file) {
+  const prods = listProducts({});
+  // Genera 3-6 detecciones al azar para demo
+  const n = Math.min(6, Math.max(3, Math.round(Math.random()*6)));
+  const picks = shuffle(prods).slice(0, n);
+  return picks.map(p => ({
+    sku: p.sku,
+    name: p.name,
+    qty: Math.max(1, Math.round(Math.random()*5)),
+    confidence: Math.random().toFixed(2) * 1
+  }));
+}
+
+function shuffle(arr){
+  return arr.map(a => [Math.random(), a]).sort((a,b) => a[0]-b[0]).map(a => a[1]);
 }
 

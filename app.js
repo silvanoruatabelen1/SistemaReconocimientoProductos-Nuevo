@@ -7,6 +7,12 @@ import './mocks/seed.js';
 const LOGIN_ENABLED = false;
 window.SCANIX_LOGIN_ENABLED = LOGIN_ENABLED;
 
+function updateThemeAssets() {
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  const src = theme === 'dark' ? './public/assets/logo-dark.svg' : './public/assets/logo.svg';
+  document.querySelectorAll('img[data-logo]').forEach(img => { img.setAttribute('src', src); });
+}
+
 function mountLayout() {
   const app = document.getElementById('app');
   app.innerHTML = `
@@ -16,6 +22,7 @@ function mountLayout() {
   `;
   document.getElementById('app-navbar').appendChild(Navbar());
   ensureToastContainer();
+  updateThemeAssets();
 }
 
 function setTheme(theme) {
@@ -35,6 +42,7 @@ function bindThemeToggle() {
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     const next = current === 'light' ? 'dark' : 'light';
     setTheme(next);
+    updateThemeAssets();
   });
 }
 

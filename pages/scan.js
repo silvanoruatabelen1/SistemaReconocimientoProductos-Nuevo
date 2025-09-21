@@ -10,7 +10,7 @@ export function ScanPage() {
       <div class="card shadow-soft p-3 h-100">
         <h5 class="mb-3">Captura/Reconocimiento</h5>
         <div class="border border-dashed rounded-3 p-4 text-center">
-          <input type="file" accept="image/*" class="form-control mb-3" id="scan-file" />
+          <input type="file" accept="image/*" capture="environment" class="form-control mb-3" id="scan-file" />
           <button class="btn btn-primary" id="btn-detect"><i class="bi bi-magic me-1"></i>Simular reconocimiento</button>
         </div>
         <div class="small text-muted mt-2">Usa vision.mock.js para detecciones simuladas</div>
@@ -67,7 +67,7 @@ export function ScanPage() {
         <td class="fw-semibold">${g.sku}</td>
         <td>${g.name}</td>
         <td>${g.qty}</td>
-        <td>${g.low ? '<span class="badge text-bg-warning">conf < 0.6</span>' : ''}</td>
+        <td>${g.low ? '<span class="badge text-bg-warning">Revisar</span>' : ''}</td>
       </tr>`).join('');
     toOrder.disabled = false;
   }
@@ -81,4 +81,3 @@ export function ScanPage() {
 
   return el;
 }
-

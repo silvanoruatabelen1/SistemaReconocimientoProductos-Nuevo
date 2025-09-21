@@ -1,6 +1,6 @@
 import { list as listProducts, getById as getProductById } from '../services/products.service.js';
 import { getDraft, addLine, removeLine, setLineQty, setDepotToDraft, computeTotals, confirmOrder, setOperatorToDraft } from '../services/orders.service.js';
-import { listDepots } from '../services/stock.service.js';
+import { listDepots, getQty } from '../services/stock.service.js';
 import { notify } from '../services/notify.service.js';
 
 export function OrderEditPage() {
@@ -70,10 +70,12 @@ export function OrderEditPage() {
     }
     tbody.innerHTML = lines.map(l => {
       const ruleTxt = l.rule ? `[${l.rule.min}-${l.rule.max ?? '∞'}] $${l.rule.price}` : '-';
+      const available = depotSel.value ? getQty(l.productId, depotSel.value) : null;
+      const stockWarn = (available!=null && available <= 5) ? '<span class="badge text-bg-warning">stock bajo</span>' : '';
       return `
         <tr>
           <td class="fw-semibold">${l.sku}</td>
-          <td>${l.name}</td>
+          <td>${l.name} ${available!=null?`<div class=\"small text-muted\">Disp: ${available} ${stockWarn}</div>`:''}</td>
           <td class="text-end"><span class="badge text-bg-light">${ruleTxt}</span></td>
           <td class="text-center">
             <div class="btn-group btn-group-sm" role="group">

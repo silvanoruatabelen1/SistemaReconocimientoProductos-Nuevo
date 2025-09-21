@@ -1,11 +1,16 @@
-import { router } from './router.js';
+import { initRouter } from './router.js';
 import { Navbar } from './components/Navbar.js';
 import { ensureToastContainer } from './components/Toast.js';
 import './mocks/seed.js';
+import { FEATURE } from './config.js';
 
-// Feature flag para futuro login (placeholder)
-const LOGIN_ENABLED = false;
-window.SCANIX_LOGIN_ENABLED = LOGIN_ENABLED;
+window.SCANIX_LOGIN_ENABLED = FEATURE.LOGIN_ENABLED;
+
+function updateThemeAssets() {
+  const theme = document.documentElement.getAttribute('data-theme') || 'light';
+  const src = theme === 'dark' ? './public/assets/logo-dark.svg' : './public/assets/logo.svg';
+  document.querySelectorAll('img[data-logo]').forEach(img => { img.setAttribute('src', src); });
+}
 
 function mountLayout() {
   const app = document.getElementById('app');
@@ -16,6 +21,7 @@ function mountLayout() {
   `;
   document.getElementById('app-navbar').appendChild(Navbar());
   ensureToastContainer();
+  updateThemeAssets();
 }
 
 function setTheme(theme) {
@@ -35,6 +41,7 @@ function bindThemeToggle() {
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     const next = current === 'light' ? 'dark' : 'light';
     setTheme(next);
+    updateThemeAssets();
   });
 }
 
@@ -42,5 +49,11 @@ window.addEventListener('DOMContentLoaded', () => {
   initTheme();
   mountLayout();
   bindThemeToggle();
-  router.start();
+  // Forzar hash inicial según flags
+  if (FEATURE.LOGIN_ENABLED) {
+    if (!location.hash) location.replace('#/login');
+  } else {
+    if (!location.hash) location.replace('#/scan');
+  }
+  initRouter();
 });

@@ -1,4 +1,5 @@
-import { listOrders } from '../services/orders.service.js';
+import { listOrders, getOrderById } from '../services/orders.service.js';
+import { downloadTicketPDF } from './ticket.js';
 import { listDepots } from '../services/stock.service.js';
 
 export function OrdersPage() {
@@ -31,16 +32,28 @@ export function OrdersPage() {
     tbody.innerHTML = orders.map(o => {
       const d = depots.find(x => x.id === o.depotId);
       return `<tr>
-        <td>${new Date(o.at).toLocaleString()}</td>
+        <td>${new Date(o.confirmedAt || o.createdAt).toLocaleString()}</td>
         <td class="fw-semibold">${o.id}</td>
         <td>${d?.name || '-'}</td>
         <td class="text-end">${fmt(o.total)}</td>
-        <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="#/ticket/${o.id}"><i class="bi bi-receipt"></i> Ver</a></td>
+        <td class="text-end">
+          <div class="btn-group btn-group-sm">
+            <a class="btn btn-outline-primary" href="#/ticket/${o.id}"><i class="bi bi-receipt"></i> Ver</a>
+            <button class="btn btn-primary" data-pdf="${o.id}"><i class="bi bi-filetype-pdf"></i></button>
+          </div>
+        </td>
       </tr>`;
     }).join('');
   }
+  // Direct PDF download from list
+  el.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-pdf]');
+    if (!btn) return;
+    const id = btn.getAttribute('data-pdf');
+    const order = getOrderById(id);
+    if (order) downloadTicketPDF(order);
+  });
   depotSel.addEventListener('change', render);
   render();
   return el;
 }
-

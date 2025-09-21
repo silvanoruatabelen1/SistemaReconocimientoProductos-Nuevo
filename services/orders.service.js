@@ -86,7 +86,8 @@ export function confirmOrder(depotId) {
   // persist order
   const order = {
     id: 'V-' + Date.now(),
-    at: Date.now(),
+    createdAt: draft.createdAt || Date.now(),
+    confirmedAt: Date.now(),
     depotId,
     operator: (draft.operator || '').trim() || null,
     lines: finalLines,
